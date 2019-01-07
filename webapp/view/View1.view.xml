@@ -45,48 +45,4 @@
 			</Page>
 		</pages>
 	</App>
-	<!--<semantic:DetailPage id="ChartsPowerMeter" showNavButton="false" navButtonPress="onNavBack" title="{ViewModel>/ViewTitle}">-->
-		<!-- xmlns:cust="PowerMeterCharts.PowerMeterCharts.controls"-->
-	<!--	<semantic:content>-->
-			<!--<IconTabBar id="iconTabBar" class="sapUiResponsiveContentPadding">-->
-			<!--	<items>-->
-			<!--		<IconTabFilter id="IconTabFilterChartConsMonth" tooltip="Monatsverbrauch - Chart" text="" icon="sap-icon://bar-chart" stretchContentHeight="true">-->
-			<!--			<Panel id="PanelChartConsMonth" class="panelStyle" expandable="true" expanded="true" headerText="Einstellungen" width="auto">-->
-			<!--				<content>-->
-			<!--					<DateRangeSelection id="DRSChartConsMonth" delimiter="-" displayFormat="MM.yyyy" change="handleDRSChartConsMonth"-->
-			<!--						dateValue="{ViewModel>/DRSChartConsMonthPeriodFrom}" secondDateValue="{ViewModel>/DRSChartConsMonthPeriodTo}"-->
-			<!--						class="sapUiMediumMarginBottom"/>-->
-			<!--				</content>-->
-			<!--			</Panel>-->
-			<!--			<viz:VizFrame id="ChartConsMonth" uiConfig="{applicationSet:'fiori'}" width="100%" vizType="timeseries_column"/>-->
-			<!--		</IconTabFilter>-->
-			<!--		<IconTabFilter id="IconTabFilerTabConsMonth" tooltip="Monatsverbrauch - Tabelle" text="" icon="sap-icon://table-view">-->
-			<!--			<Panel id="PanelTabConsMonth" class="panelStyle" expandable="true" expanded="true" headerText="Einstellungen" width="auto">-->
-			<!--				<content>-->
-								<!--<cust:ValuePicker id="ValuePickerTabConsMonthYear1" value="{ViewModel>/TabConsMonthYear1}" change="onValuePickerTabConsMonthYear1"-->
-								<!--	placeholder="Jahr 1 eingeben" fromStep="2010" toStep="2030" pickerTitle="Jahr"/>-->
-								<!--<cust:ValuePicker id="ValuePickerTabConsMonthYear2" value="{ViewModel>/TabConsMonthYear2}" change="onValuePickerTabConsMonthYear2"-->
-								<!--	placeholder="Jahr 2 eingeben" fromStep="2010" toStep="2030" pickerTitle="Jahr"/>-->
-			<!--				</content>-->
-			<!--			</Panel>-->
-			<!--			<content>-->
-							<!--Placeholder for Table definition is done in controller dynamically-->
-			<!--				<Table id="TabConsMonth"/>-->
-			<!--			</content>-->
-			<!--		</IconTabFilter>-->
-			<!--		<IconTabFilter id="IconTabFilterChartCurrCons" tooltip="Momentanverbrauch - Chart" text="" icon="sap-icon://line-chart"-->
-			<!--			stretchContentHeight="true">-->
-			<!--			<Panel id="PanelChartCurrCons" class="panelStyle" expandable="true" expanded="true" headerText="Einstellungen" width="auto">-->
-			<!--				<content>-->
-			<!--					<DatePicker id="DPChartCurrCons" placeholder="Enter Date ..." value="{ViewModel>/ChartCurrConsDate}" change="onDPChartCurrCons"-->
-			<!--						class="sapUiSmallMarginBottom" valueFormat="YYYY-MM-dd"/>-->
-			<!--				</content>-->
-			<!--			</Panel>-->
-			<!--			<viz:VizFrame id="ChartCurrCons" uiConfig="{applicationSet:'fiori'}" width="100%" vizType="timeseries_line"/>-->
-			<!--		</IconTabFilter>-->
-			<!--	</items>-->
-			<!--</IconTabBar>-->
-	<!--	</semantic:content>-->
-	<!--	<semantic:customFooterContent/>-->
-	<!--</semantic:DetailPage>-->
 </mvc:View>

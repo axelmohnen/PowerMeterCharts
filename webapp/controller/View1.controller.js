@@ -19,7 +19,7 @@ sap.ui.define([
 			this.iYearCurrent = oDate.getFullYear();
 
 			// Set time frame to read (in years)
-			this.iTimeFrame = 5;
+			this.iTimeFrame = 1;
 
 			// Build View Model
 			var oViewModel = new JSONModel({
@@ -33,12 +33,27 @@ sap.ui.define([
 			// Set View Model
 			this.getView().setModel(oViewModel, "ViewModel");
 
-			//Set context
-			//this._onObjectMatched(this);
-
 			//  Create a JSON Model for consumption per month table view
 			var oConsMonthTabModel = new sap.ui.model.json.JSONModel();
-			this.getView().setModel(oConsMonthTabModel, "ConsMonthTab");
+			this.getView().setModel(oConsMonthTabModel, "ConsMonthTab");			
+			this.sDeviceID = "eg.hw.sz.haushalt";
+
+			// Get Chart data - Consumption per month
+			this.oConsMonthData = this.getConsMonthData(this.sDeviceID);
+
+			// Get Chart data - Current consumption
+			this.oCurrConsData = this.getCurrConsData(this.sDeviceID);
+
+			// Build Column Chart for monthly consumption
+			this.buildChartConsMonth();
+
+			// Build Table for monthly consumption	
+			this.buildTabConsMonth();
+
+			// Build Line Chart for current consumption
+			this.buildChartCurrCons();
+
+
 
 		},
 
