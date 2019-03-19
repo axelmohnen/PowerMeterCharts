@@ -53,7 +53,8 @@ sap.ui.define([
 				this.destroyAggregation("_columns");
 			}
 
-			this._setupLists(this.getFormat());
+			//this._setupLists(this.getFormat());
+			this._setupLists();
 
 			return this;
 		},
@@ -66,7 +67,8 @@ sap.ui.define([
 				this.destroyAggregation("_columns");
 			}
 
-			this._setupLists(this.getFormat());
+			//this._setupLists(this.getFormat());
+			this._setupLists();
 
 			return this;
 		},

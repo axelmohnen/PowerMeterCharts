@@ -6,57 +6,59 @@ sap.ui.define([
 	"sap/ui/model/json/JSONModel"
 ], function (Controller, History, GlobalUtils, FhemUtils, JSONModel) {
 	"use strict";
-
 	return Controller.extend("PowerMeterCharts.PowerMeterCharts.controller.View1", {
 		onInit: function () {
 			var oDate = new Date();
 			var oDateFrom = new Date();
-
 			// Substract current date minus 1 year
 			oDateFrom.setFullYear(oDateFrom.getFullYear() - 1);
-
 			// Set current year
 			this.iYearCurrent = oDate.getFullYear();
-
 			// Set time frame to read (in years)
 			this.iTimeFrame = 1;
+			
+			// Set year range
+			var oYearRange = GlobalUtils.getYearRange("2010");
 
 			// Build View Model
 			var oViewModel = new JSONModel({
 				ViewTitle: "",
-				DRSChartConsMonthPeriodFrom: new Date(oDateFrom.getFullYear(), oDateFrom.getMonth(), 1),
-				DRSChartConsMonthPeriodTo: new Date(oDate.getFullYear(), oDate.getMonth(), 1),
+				ChartConsMonthYear: oDate.getFullYear().toString(),
 				TabConsMonthYear1: oDateFrom.getFullYear().toString(),
 				TabConsMonthYear2: oDate.getFullYear().toString(),
-				ChartCurrConsDate: GlobalUtils.convertDateToISOStringCET(oDate).slice(0, 10) //Current date in YYYY-MM-dd
+				ChartCurrConsDate: GlobalUtils.convertDateToISOStringCET(oDate).slice(0, 10), //Current date in YYYY-MM-dd
+				Years: oYearRange
 			});
 			// Set View Model
 			this.getView().setModel(oViewModel, "ViewModel");
-
 			//  Create a JSON Model for consumption per month table view
 			var oConsMonthTabModel = new sap.ui.model.json.JSONModel();
-			this.getView().setModel(oConsMonthTabModel, "ConsMonthTab");			
+			this.getView().setModel(oConsMonthTabModel, "ConsMonthTab");
 			this.sDeviceID = "eg.hw.sz.haushalt";
-
 			// Get Chart data - Consumption per month
 			this.oConsMonthData = this.getConsMonthData(this.sDeviceID);
-
 			// Get Chart data - Current consumption
 			this.oCurrConsData = this.getCurrConsData(this.sDeviceID);
-
 			// Build Column Chart for monthly consumption
 			this.buildChartConsMonth();
-
 			// Build Table for monthly consumption	
 			this.buildTabConsMonth();
-
 			// Build Line Chart for current consumption
 			this.buildChartCurrCons();
-
-
-
+			var elem = this.getView().byId("ChartsPowerMeter");
+			if (elem.requestFullscreen) {
+				elem.requestFullscreen();
+			} else if (elem.mozRequestFullScreen) {
+				/* Firefox */
+				elem.mozRequestFullScreen();
+			} else if (elem.webkitRequestFullscreen) {
+				/* Chrome, Safari & Opera */
+				elem.webkitRequestFullscreen();
+			} else if (elem.msRequestFullscreen) {
+				/* IE/Edge */
+				elem.msRequestFullscreen();
+			}
 		},
-
 		/**
 		 * Binds the view to the object path and expands the aggregated line items.
 		 * @function
@@ -69,33 +71,25 @@ sap.ui.define([
 			// this.sReadingID = oEvent.getParameter("arguments").ReadingID;
 			// this.sTileHeader = oEvent.getParameter("arguments").TileHeader;
 			// this.sTileSubHeader = oEvent.getParameter("arguments").TileSubHeader;
-
 			// // Update Title of view model
 			// this.getModel("ViewModel").setProperty("/ViewTitle", this.sTileHeader + this.sTileSubHeader);
-
 			// Get Chart data - Consumption per month
 			this.oConsMonthData = this.getConsMonthData(this.sDeviceID);
-
 			// Get Chart data - Current consumption
 			this.oCurrConsData = this.getCurrConsData(this.sDeviceID);
-
 			// Build Column Chart for monthly consumption
 			this.buildChartConsMonth();
-
 			// Build Table for monthly consumption	
 			this.buildTabConsMonth();
-
 			// Build Line Chart for current consumption
 			this.buildChartCurrCons();
 		},
-
 		onNavBack: function () {
 			//  Get VizFrame by ID		
 			var oVizFrame = this.getView().byId("ChartConsMonth");
 			// Destroy data bindings
 			oVizFrame.destroyDataset();
 			oVizFrame.destroyFeeds();
-
 			var sPreviousHash = History.getInstance().getPreviousHash();
 			if (sPreviousHash !== undefined) {
 				history.go(-1);
@@ -105,7 +99,6 @@ sap.ui.define([
 				}, true);
 			}
 		},
-
 		buildTabConsMonth: function () {
 			// Get Table data
 			var oTabdata = this.oConsMonthData;
@@ -113,40 +106,32 @@ sap.ui.define([
 			var sKey = "";
 			var bDataExists = false;
 			var i, j;
-			var fTotalConsYear = 0.00;
+			var fTotalConsYear = 0;
 			var iYear;
-
 			// Check mandatory data 
 			if (!oTabdata) {
 				return;
 			}
-
 			// Get View Model
 			var oViewModel = this.getView().getModel("ViewModel");
-
 			//Retrieve comparison years 
 			var iYear1 = oViewModel.getProperty("/TabConsMonthYear1");
 			var iYear2 = oViewModel.getProperty("/TabConsMonthYear2");
-
 			// Create data container
 			var oConsMonthData = {
 				"PowerMeter": []
 			};
-
 			for (i = 0; i < 12; i++) {
 				// Build new data record 
 				oConsMonthData.PowerMeter[i] = {
 					"Month": GlobalUtils.getMonthName(i)
 				};
-
 				for (j = 0; j < 2; j++) {
 					// Initialize loop data
 					iYear = 0;
 					sKey = "";
-
 					// Increment Month
 					iMonth = i + 1;
-
 					// Set year to be processed
 					switch (j) {
 					case 0:
@@ -156,62 +141,48 @@ sap.ui.define([
 						iYear = iYear2;
 						break;
 					}
-
 					// Build key to be searched (YYYY-MM-01 00:00:00)
 					sKey = iYear + "-" + GlobalUtils.addLeadingZeros(iMonth, 2) + "-" + "01" + " " + "00:00:00";
 					// Execute search
 					var oResult = jQuery.grep(oTabdata.PowerMeter, function (e) {
 						return e.Month === sKey;
 					});
-
 					if (oResult.length) {
 						//Create new property (Year) and set value
 						oConsMonthData.PowerMeter[i][iYear] = oResult[0].Value;
 					}
-
 					if (j === 1 && oConsMonthData.PowerMeter[i][iYear1] && oConsMonthData.PowerMeter[i][iYear2]) {
-						var iDiffPercentage = ((oConsMonthData.PowerMeter[i][iYear1] / 100) - (oConsMonthData.PowerMeter[i][iYear2] / oConsMonthData.PowerMeter[
-							i][iYear1])) * 100;
-
+						var iDiffPercentage = (oConsMonthData.PowerMeter[i][iYear1] / 100 - oConsMonthData.PowerMeter[i][iYear2] / oConsMonthData.PowerMeter[
+							i][iYear1]) * 100;
 						oConsMonthData.PowerMeter[i].diff = iDiffPercentage;
 					}
 				}
 			}
-
 			// Set data to model
 			var oConsMonthTabModel = this.getView().getModel("ConsMonthTab");
 			oConsMonthTabModel.setData(oConsMonthData);
-
 			// Get Table instance 
 			var oTabConsMonth = this.getView().byId("TabConsMonth");
 			// Remove all existing columns in case of refresh
 			oTabConsMonth.removeAllColumns();
-
 			// Build new column handler 
 			var oCol = new sap.m.Column({
-				header: [
-					new sap.m.Label({
-						text: "Monat"
-					})
-				]
+				header: [new sap.m.Label({
+					text: "Monat"
+				})]
 			});
 			// Set column to table
 			oTabConsMonth.addColumn(oCol);
-
 			// Build new Column Item List handler
 			var oColList = new sap.m.ColumnListItem();
-
 			// Add new cell to column item list
 			oColList.addCell(new sap.m.Text({
 				text: "{ConsMonthTab>Month}"
 			}));
-
 			for (i = 0; i < 2; i++) {
-
 				// Initialize loop data
 				bDataExists = false;
 				fTotalConsYear = 0;
-
 				// Set year to be processed
 				switch (i) {
 				case 0:
@@ -221,78 +192,59 @@ sap.ui.define([
 					iYear = iYear2;
 					break;
 				}
-
 				// Check if a data exists for given year
 				for (j = 0; j < 12; j++) {
 					if (oConsMonthData.PowerMeter[j][iYear]) {
 						// Data exists -> set flag and leave loop
 						bDataExists = true;
-
 						// Calculate total consumption per year
 						fTotalConsYear += parseFloat(oConsMonthData.PowerMeter[j][iYear]);
 					}
 				}
-
 				// IF no data exists for given -> don't create a column and continue with next year 
 				if (!bDataExists) {
 					continue;
 				}
-
 				// Build new column handler 
 				oCol = new sap.m.Column({
-					header: [
-						new sap.m.Label({
-							text: iYear
-						})
-					],
-					footer: [
-						new sap.m.Label({
-							text: fTotalConsYear
-						})
-					]
+					header: [new sap.m.Label({
+						text: iYear
+					})],
+					footer: [new sap.m.Label({
+						text: fTotalConsYear
+					})]
 				});
 				// Set column to table
 				oTabConsMonth.addColumn(oCol);
-
 				// Add new cell to column item list
 				oColList.addCell(new sap.m.Text({
 					text: "{ConsMonthTab>" + iYear + "}"
 				}));
 			}
-
 			oTabConsMonth.bindAggregation("items", "ConsMonthTab>/PowerMeter", oColList);
-
 		},
-
 		buildChartConsMonth: function () {
-
 			// Get Chart data
 			var oChartdata = this.oConsMonthData;
-
 			// Check mandatory data 
 			if (!oChartdata) {
 				return;
 			}
-
 			//  Get VizFrame by ID		
 			var oVizFrame = this.getView().byId("ChartConsMonth");
-
 			//  Create a JSON Model and set the data
 			var oChartDataModel = new sap.ui.model.json.JSONModel();
 			oChartDataModel.setData(oChartdata);
 			oVizFrame.setModel(oChartDataModel);
-
 			// Build Chart DataSet
 			var oChartDataSet = this.buildChartConsMonthDataSet();
 			// Set dataset
 			oVizFrame.setDataset(oChartDataSet);
-
 			// Get View Model
 			var oViewModel = this.getView().getModel("ViewModel");
 			// Get Period From and Period To 
 			var oPeriodFrom = oViewModel.getProperty("/DRSChartConsMonthPeriodFrom");
 			var oPeriodTo = oViewModel.getProperty("/DRSChartConsMonthPeriodTo");
-
 			// Set Viz properties
 			oVizFrame.setVizProperties({
 				plotArea: {
@@ -319,35 +271,32 @@ sap.ui.define([
 					interval: {
 						unit: ""
 					},
-					levels: ["Month", "year"]
+					levels: [
+						"Month",
+						"year"
+					]
 				},
 				title: {
 					visible: false,
 					text: this.sTileHeader + this.sTileSubHeader
 				}
-
 			});
-
 			// Set Y Axis property
 			var feedValueAxis = new sap.viz.ui5.controls.common.feeds.FeedItem({
 				"uid": "valueAxis",
 				"type": "Measure",
 				"values": ["Verbrauch in kWh"]
 			});
-
 			// Set X Axis property
 			var feedTimeAxis = new sap.viz.ui5.controls.common.feeds.FeedItem({
 				"uid": "timeAxis",
 				"type": "Dimension",
 				"values": ["Month"]
 			});
-
 			// Set Feed data
 			oVizFrame.addFeed(feedValueAxis);
 			oVizFrame.addFeed(feedTimeAxis);
-
 		},
-
 		buildChartConsMonthDataSet: function () {
 			// A Dataset defines how the model data is mapped to the chart
 			var oDataSet = new sap.viz.ui5.data.FlattenedDataset({
@@ -364,46 +313,36 @@ sap.ui.define([
 					path: "/PowerMeter"
 				}
 			});
-
 			// Leave if we couldn't instanciate the dataset
 			if (!oDataSet) {
 				return;
 			}
-
 			return oDataSet;
 		},
-
 		buildChartCurrCons: function () {
-
 			// Get Chart data
 			var oChartdata = this.oCurrConsData;
-
 			// Check mandatory data 
 			if (!oChartdata) {
 				return;
 			}
-
 			//  Get VizFrame by ID		
 			var oVizFrame = this.getView().byId("ChartCurrCons");
 			oVizFrame.destroyDataset();
 			oVizFrame.destroyFeeds();
-
 			// Get View Model
 			var oViewModel = this.getView().getModel("ViewModel");
 			var sCurrConsDate = oViewModel.getProperty("/ChartCurrConsDate");
 			var sDateFrom = GlobalUtils.convertDateTime2DateTimeString(sCurrConsDate, "00:00:00");
 			var sDateTo = GlobalUtils.convertDateTime2DateTimeString(sCurrConsDate, "23:59:59");
-
 			//  Create a JSON Model and set the data
 			var oChartDataModel = new sap.ui.model.json.JSONModel();
 			oChartDataModel.setData(oChartdata);
 			oVizFrame.setModel(oChartDataModel);
-
 			// Build Chart DataSet
 			var oChartDataSet = this.buildChartCurrConsDataSet();
 			// Set dataset
 			oVizFrame.setDataset(oChartDataSet);
-
 			// Set Viz properties
 			oVizFrame.setVizProperties({
 				plotArea: {
@@ -430,21 +369,24 @@ sap.ui.define([
 					interval: {
 						unit: ""
 					},
-					levels: ["Minute", "hour", "day", "year"]
+					levels: [
+						"Minute",
+						"hour",
+						"day",
+						"year"
+					]
 				},
 				title: {
 					visible: false,
 					text: this.sTileHeader + this.sTileSubHeader
 				}
 			});
-
 			// Set Y Axis property
 			var feedValueAxis = new sap.viz.ui5.controls.common.feeds.FeedItem({
 				"uid": "valueAxis",
 				"type": "Measure",
 				"values": ["Momentanverbrauch in W"]
 			});
-
 			// Set X Axis property
 			var feedTimeAxis = new sap.viz.ui5.controls.common.feeds.FeedItem({
 				//"uid": "categoryAxis",
@@ -452,13 +394,10 @@ sap.ui.define([
 				"type": "Dimension",
 				"values": ["Uhrzeit"]
 			});
-
 			// Set Feed data
 			oVizFrame.addFeed(feedValueAxis);
 			oVizFrame.addFeed(feedTimeAxis);
-
 		},
-
 		buildChartCurrConsDataSet: function () {
 			// A Dataset defines how the model data is mapped to the chart
 			var oDataSet = new sap.viz.ui5.data.FlattenedDataset({
@@ -475,15 +414,12 @@ sap.ui.define([
 					path: "/PowerMeter"
 				}
 			});
-
 			// Leave if we couldn't instanciate the dataset
 			if (!oDataSet) {
 				return;
 			}
-
 			return oDataSet;
 		},
-
 		getConsMonthData: function (sDeviceID) {
 			var iYearPast = this.iYearCurrent - this.iTimeFrame;
 			var sDblog = sDeviceID + ".dblog1";
@@ -491,10 +427,8 @@ sap.ui.define([
 			var sTimestampFrom = iYearPast + "-01-01_00:00:00";
 			var sTimestampTo = this.iYearCurrent + "-12-31_00:00:00";
 			var sReading = "Monatsverbrauch";
-
 			//Read DBLOG from FHEM
 			var oFhemDblog = FhemUtils.readDblogData(this, sDblog, sDevice, sTimestampFrom, sTimestampTo, sReading);
-
 			// Read Dummy data in case no data has been retrieved from FHEM
 			if (!oFhemDblog) {
 				oFhemDblog = {
@@ -733,21 +667,16 @@ sap.ui.define([
 					}],
 					"totalCount": 12
 				};
-
 			}
-
 			//Sort Data by Timestamp 
 			oFhemDblog.data.sort(GlobalUtils.compareTimestamp);
-
 			var oConsMonthData = {
 				"PowerMeter": []
 			};
-
 			var iDataLen = oFhemDblog.data.length;
 			for (var i = 0; i < iDataLen; i++) {
 				// Convert Timestamp into timestamp with first day of month (YYYY-MM-01 00:00:00)
 				var oTimestampFormated = GlobalUtils.convertTimestamp(oFhemDblog.data[i].TIMESTAMP);
-
 				// Build new data record 
 				oConsMonthData.PowerMeter[i] = {
 					"Month": oTimestampFormated.timestampFirstDayMonth,
@@ -755,9 +684,7 @@ sap.ui.define([
 				};
 			}
 			return oConsMonthData;
-
 		},
-
 		getCurrConsData: function (sDeviceID) {
 			var iYearPast = this.iYearCurrent - this.iTimeFrame;
 			var sDblog = sDeviceID + ".dblog";
@@ -765,15 +692,12 @@ sap.ui.define([
 			var sTimestampFrom = iYearPast + "-01-01_00:00:00";
 			var sTimestampTo = this.iYearCurrent + "-12-31_00:00:00";
 			var sReading = "Momentanleistung";
-
 			//Read DBLOG from FHEM
 			var oFhemDblog = FhemUtils.readDblogData(this, sDblog, sDevice, sTimestampFrom, sTimestampTo, sReading);
-
 			// Read Dummy data in case no data has been retrieved from FHEM
 			if (!oFhemDblog) {
 				oFhemDblog = {
 					"data": [{
-
 						"TIMESTAMP": "2017-01-01 00:00:00",
 						"DEVICE": "eg.hw.sz.haushalt",
 						"TYPE": "SMLUSB",
@@ -1352,21 +1276,16 @@ sap.ui.define([
 					}],
 					"totalCount": 72
 				};
-
 			}
-
 			//Sort Data by Timestamp 
 			oFhemDblog.data.sort(GlobalUtils.compareTimestamp);
-
 			var oCurrConsData = {
 				"PowerMeter": []
 			};
-
 			var iDataLen = oFhemDblog.data.length;
 			for (var i = 0; i < iDataLen; i++) {
 				// Convert Timestamp into month/year (MM.YYYY)
 				//var oTimestampFormated = GlobalUtils.convertTimestamp(oFhemDblog.data[i].TIMESTAMP);
-
 				// Build new data record 
 				oCurrConsData.PowerMeter[i] = {
 					"Uhrzeit": oFhemDblog.data[i].TIMESTAMP,
@@ -1374,37 +1293,13 @@ sap.ui.define([
 				};
 			}
 			return oCurrConsData;
-
 		},
 
-		handleDRSChartConsMonth: function (evt) {
-			//  Get VizFrame by ID		
-			var oVizFrame = this.getView().byId("ChartConsMonth");
-			// Get new Period-From and Period-To values
-			var oPeriodFrom = evt.getParameter("from");
-			var oPeriodTo = evt.getParameter("to");
-
-			// Set Viz properties
-			var properties = oVizFrame.getVizProperties();
-
-			// Set new Period-From and Period-To value
-			var sStart = GlobalUtils.convertDateTime2DateTimeString(GlobalUtils.convertDateToISOStringCET(oPeriodFrom).slice(0, 10), "00:00:00");
-			var sEnd = GlobalUtils.convertDateTime2DateTimeString(GlobalUtils.convertDateToISOStringCET(oPeriodTo).slice(0, 10), "00:00:00");
-			properties.plotArea.window.start = sStart;
-			properties.plotArea.window.end = sEnd;
-
-			// Update VIZ Frame properties
-			oVizFrame.vizUpdate({
-				"properties": properties
-			});
-		},
-
-		onValuePickerTabConsMonthYear1: function (evt) {
+		onYearSelectionTabConsMonthYear1: function (oEvent) {
 			// Build Table for monthly consumption	
 			this.buildTabConsMonth();
 		},
-
-		onValuePickerTabConsMonthYear2: function (evt) {
+		onYearSelectionTabConsMonthYear2: function (oEvent) {
 			// Build Table for monthly consumption	
 			this.buildTabConsMonth();
 		},
@@ -1412,7 +1307,32 @@ sap.ui.define([
 		onDPChartCurrCons: function (evt) {
 			// Build Line Chart for current consumption
 			this.buildChartCurrCons();
+		},
+		/**
+		 *@memberOf PowerMeterCharts.PowerMeterCharts.controller.View1
+		 */
+		onYearSelectionChartConsMonth: function (oEvent) {
+			// Get View Model
+			var oViewModel = this.getView().getModel("ViewModel");
+			var sYearSelected = oViewModel.getProperty("/ChartConsMonthYear");
+			
+			// Build year from
+			var sPeriodFrom = sYearSelected + "-01-01";
+			// Build year to
+			var sPeriodTo = sYearSelected + "-12-31";
+			
+			//  Get VizFrame by ID		
+			var oVizFrame = this.getView().byId("ChartConsMonth");
+			var properties = oVizFrame.getVizProperties();
+			// Set new Period-From and Period-To value
+			var sStart = GlobalUtils.convertDateTime2DateTimeString(sPeriodFrom, "00:00:00");
+			var sEnd = GlobalUtils.convertDateTime2DateTimeString(sPeriodTo, "00:00:00");
+			properties.plotArea.window.start = sStart;
+			properties.plotArea.window.end = sEnd;
+			// Update VIZ Frame properties
+			oVizFrame.vizUpdate({
+				"properties": properties
+			});
 		}
-
 	});
 });
